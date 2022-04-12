@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+    <link rel="stylesheet" href="https://www.w3schools.com/lib/w3-theme-black.css">
+    <title>Title</title>
+</head>
+<body>
+<h5>Pair that worked together the longest</h5>
+<div width="500px">
+    <div class="w9-responsive w3-card-4">
+    <table class="w3-table w3-striped w3-bordered" >
+        <thead>
+        <tr class="w3-theme">
+            <th scope="col">Employee 1</th>
+            <th scope="col">Employee 2</th>
+            <th scope="col">Project ID</th>
+            <th scope="col">Days</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="em : ${employeeList}">
+            <td th:text="${em.getFirstEmployeeID()}"></td>
+            <td th:text="${em.getSecondEmployeeID()}"></td>
+            <td th:text="${em.getProjectID()}"></td>
+            <td th:text="${em.getDays()}"></td>
+        </tr>
+
+        </tbody>
+    </table>
+    </div>
+
+    <div><a th:href="@{/}" class="w3-button-sm w3-theme">
+        <button type="submit" class="w3-button-sm w3-theme">Back to Upload</button></a>
+    </div>
+</div>
+
+</body>
+</html>
