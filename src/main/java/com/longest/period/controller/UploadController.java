@@ -4,7 +4,6 @@ import com.longest.period.service.EmployeeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -41,7 +40,7 @@ public class UploadController {
             os.write(file.getBytes());
         }
 
-        model.addAttribute("employeeList", employeeService.getTable(employeeList));
+        model.addAttribute("employeeList", employeeService.createTable(employeeList));
         return "table";
     }
 

@@ -14,23 +14,24 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.groupingBy;
 
 @Service
 public class EmployeeService {
 
-    public  List<String> formatStrings = Arrays.asList("yyyy/MM/dd", "yyyy-MM-dd", "dd-MM-yyyy");
+    private List<String> formatStrings = Arrays.asList("yyyy/MM/dd", "MM/dd/yyyy", "dd/MM/yyyy", "yyyy-MM-dd", "MM-dd-yyyy", "dd-MM-yyyy", "yyyy.MM.dd", "MM.dd.yyyy", "dd.MM.yyyy");
 
-    public Long workingTogether(Employee employee1, Employee employee2) {
+    private Long workingTogether(Employee employee1, Employee employee2) {
         LocalDate from = employee1.getDateFrom().isBefore(employee2.getDateFrom()) ? employee2.getDateFrom() : employee1.getDateFrom();
         LocalDate to = employee1.getDateTo().isBefore(employee2.getDateTo()) ? employee1.getDateTo() : employee2.getDateTo();
         if (to.isAfter(from) || to.isEqual(from))
             return Math.abs(ChronoUnit.DAYS.between(from, to));
-        return Long.valueOf(0);
+        return 0L;
     }
 
-    public LocalDate tryParseDate(String dateString) {
+    private LocalDate tryParseDate(String dateString) {
         for (String formatString : formatStrings) {
             try {
                 return new SimpleDateFormat(formatString).parse(dateString)
@@ -38,32 +39,34 @@ public class EmployeeService {
                         .atZone(ZoneId.systemDefault())
                         .toLocalDate();
             } catch (ParseException e) {
+                e.printStackTrace();
             }
         }
 
         return null;
     }
 
+    private Employee createEmployee(String line)  {
+        String[] employee = line.split(",");
+        return new Employee(Long.valueOf(employee[0]), Long.valueOf(employee[1]), tryParseDate(employee[2]), employee[3].equals("NULL") ? LocalDate.now() : tryParseDate(employee[3]));
+    }
 
-    public List<TableDTO> getTable(File file) throws IOException {
+
+    public List<TableDTO> createTable(File file) throws IOException {
 
         List<TableDTO> tableDTOList = new ArrayList<>();
-        StringBuilder sb = new StringBuilder();
-        BufferedReader br = new BufferedReader(new FileReader(file));
-        String line = "";
 
-        List<Employee> employeeList = new ArrayList<>();
-        while ((line = br.readLine()) != null) {
-            String[] employee = line.split(",");
-            Employee e = new Employee(Long.valueOf(employee[0]), Long.valueOf(employee[1]), tryParseDate(employee[2]), employee[3].equals("NULL") ? LocalDate.now() : tryParseDate(employee[3]));
-            employeeList.add(e);
-        }
+        List<Employee> employeeList = new BufferedReader(new FileReader(file))
+                .lines()
+                .map(line -> createEmployee(line))
+                .collect(Collectors.toList());
 
-        Map<Long, List<Employee>> employeeMap = employeeList.stream().collect(groupingBy(Employee::getProjectId));
 
-        for (List<Employee> emp : employeeMap.values()) {
+        Map<Long, List<Employee>> employeesByProject = employeeList.stream().collect(groupingBy(Employee::getProjectId));
 
-            Long max = Long.valueOf(0);
+        for (List<Employee> emp : employeesByProject.values()) {
+
+            Long max = 0L;
             Employee employee1 = null;
             Employee employee2 = null;
             for (int i = 0; i < emp.size() - 1; i++) {
@@ -76,14 +79,8 @@ public class EmployeeService {
                 }
             }
 
-            TableDTO tableDTO = new TableDTO();
-            tableDTO.setFirstEmployeeID(employee1.getEmployeeId());
-            tableDTO.setSecondEmployeeID(employee2.getEmployeeId());
-            tableDTO.setProjectID(employee1.getProjectId());
-            tableDTO.setDays(max);
-
+            TableDTO tableDTO = new TableDTO(employee1.getEmployeeId(), employee2.getEmployeeId(), employee1.getProjectId(), max);
             tableDTOList.add(tableDTO);
-
         }
 
         return tableDTOList;
